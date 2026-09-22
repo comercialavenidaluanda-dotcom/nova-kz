@@ -1,0 +1,1 @@
+# NOVA KZ\n\nAplicação financeira NOVA KZ. Build Android APK via GitHub Actions.\n
