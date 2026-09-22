@@ -16,6 +16,13 @@ jobs:
       - name: Checkout NOVA KZ
         uses: actions/checkout@v4
 
+      - name: Extract NOVA KZ project from ZIP
+        run: |
+          if [ -f nova-kz-apk-build.zip ]; then
+            unzip -oq nova-kz-apk-build.zip -d .
+            rm -f nova-kz-apk-build.zip
+          fi
+
       - name: Check Android project
         run: |
           test -f settings.gradle.kts
@@ -34,9 +41,9 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses >/dev/null || true
 
-      - name: Install Android SDK 36.1
+      - name: Install Android SDK
         run: |
-          sdkmanager "platform-tools" "platforms;android-36.1" "build-tools;36.0.0"
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
