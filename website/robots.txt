@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nova-kz.vercel.app/sitemap.xml
