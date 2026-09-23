@@ -34,16 +34,16 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p = Path("app/build.gradle.kts")
           s = p.read_text(encoding="utf-8")
-          patterns = [
-              (r'keyAlias\\s*=\\s*"upload"', 'keyAlias = System.getenv("KEY_ALIAS") ?: "upload"'),
-              (r'keyAlias\\s*=\\s*["\\']upload["\\']', 'keyAlias = System.getenv("KEY_ALIAS") ?: "upload"'),
-          ]
-          for pattern, repl in patterns:
-              s = re.sub(pattern, repl, s, count=1)
+          old = 'keyAlias = "upload"'
+          new = 'keyAlias = System.getenv("KEY_ALIAS") ?: "upload"'
+          if old in s:
+              s = s.replace(old, new)
+          elif 'System.getenv("KEY_ALIAS")' not in s:
+              raise SystemExit("Release keyAlias assignment not found; refusing to guess.")
           p.write_text(s, encoding="utf-8")
+          print("Release signing alias configured from KEY_ALIAS.")
           PY
           grep -n -E "keyAlias|storeFile|storePassword|keyPassword" app/build.gradle.kts || true
 
