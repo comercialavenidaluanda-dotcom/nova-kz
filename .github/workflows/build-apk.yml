@@ -29,6 +29,28 @@ jobs:
           test -f app/build.gradle.kts
           test -f app/src/main/AndroidManifest.xml
 
+      - name: Ensure modern Fragment dependency for ActivityResult API
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("app/build.gradle.kts")
+          s = p.read_text(encoding="utf-8")
+          dep = '    implementation("androidx.fragment:fragment-ktx:1.8.6")'
+          pattern = r'implementation\(["\']androidx\.fragment:fragment-ktx:[^"\']+["\']\)'
+          if "androidx.fragment:fragment-ktx" in s:
+              s = re.sub(pattern, dep, s, count=1)
+          else:
+              marker = "dependencies {"
+              if marker not in s:
+                  raise SystemExit("dependencies block not found in app/build.gradle.kts")
+              s = s.replace(marker, marker + "\n" + dep, 1)
+          p.write_text(s, encoding="utf-8")
+          print("Fragment dependency normalized to 1.8.6")
+          PY
+          grep -n "androidx.fragment:fragment-ktx" app/build.gradle.kts
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
