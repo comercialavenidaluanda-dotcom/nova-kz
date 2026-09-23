@@ -29,7 +29,7 @@ jobs:
           test -f app/build.gradle.kts
           test -f app/src/main/AndroidManifest.xml
 
-      - name: Ensure modern Fragment dependency for ActivityResult API
+      - name: Prepare release signing configuration
         shell: bash
         run: |
           python3 - <<'PY'
@@ -37,19 +37,15 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           s = p.read_text(encoding="utf-8")
-          dep = '    implementation("androidx.fragment:fragment-ktx:1.8.6")'
-          pattern = r'implementation\(["\']androidx\.fragment:fragment-ktx:[^"\']+["\']\)'
-          if "androidx.fragment:fragment-ktx" in s:
-              s = re.sub(pattern, dep, s, count=1)
-          else:
-              marker = "dependencies {"
-              if marker not in s:
-                  raise SystemExit("dependencies block not found in app/build.gradle.kts")
-              s = s.replace(marker, marker + "\n" + dep, 1)
+          patterns = [
+              (r'keyAlias\\s*=\\s*"upload"', 'keyAlias = System.getenv("KEY_ALIAS") ?: "upload"'),
+              (r'keyAlias\\s*=\\s*["\\']upload["\\']', 'keyAlias = System.getenv("KEY_ALIAS") ?: "upload"'),
+          ]
+          for pattern, repl in patterns:
+              s = re.sub(pattern, repl, s, count=1)
           p.write_text(s, encoding="utf-8")
-          print("Fragment dependency normalized to 1.8.6")
           PY
-          grep -n "androidx.fragment:fragment-ktx" app/build.gradle.kts
+          grep -n -E "keyAlias|storeFile|storePassword|keyPassword" app/build.gradle.kts || true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
